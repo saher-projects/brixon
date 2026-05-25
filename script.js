@@ -1,311 +1,322 @@
-/* ============================================
-   BRIXON CAFE — Premium JavaScript
-   ============================================ */
+/* =========================================
+   APEX FITNESS — SCRIPT.JS
+   ========================================= */
 
-// ---- LOADER ----
-window.addEventListener('load', () => {
-  const fill = document.getElementById('loaderFill');
-  const loader = document.getElementById('loader');
-  fill.style.width = '100%';
-  setTimeout(() => {
-    loader.classList.add('done');
-    document.body.style.overflow = '';
-    initAnimations();
-  }, 2400);
-});
+// ── PRELOADER ──────────────────────────────
+const preloader = document.getElementById('preloader');
+const preBar    = document.getElementById('preBar');
+const preNum    = document.getElementById('preNum');
+
+let pct = 0;
+const preInt = setInterval(() => {
+  pct += Math.random() * 8 + 3;
+  if (pct >= 100) { pct = 100; clearInterval(preInt); }
+  preBar.style.width = pct + '%';
+  preNum.textContent = Math.floor(pct);
+  if (pct === 100) {
+    setTimeout(() => {
+      preloader.classList.add('out');
+      document.body.style.overflow = '';
+      initReveal();
+      initCounters();
+      initTestimonials();
+      initPrograms();
+    }, 400);
+  }
+}, 60);
 document.body.style.overflow = 'hidden';
 
-// ---- CUSTOM CURSOR ----
-const cursor = document.getElementById('cursor');
-const follower = document.getElementById('cursorFollower');
-let mouseX = 0, mouseY = 0;
-let followerX = 0, followerY = 0;
+// ── CURSOR ──────────────────────────────────
+const cur  = document.getElementById('cur');
+const cur2 = document.getElementById('cur2');
+let mx = 0, my = 0, fx = 0, fy = 0;
 
-document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px';
-  cursor.style.top = mouseY + 'px';
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top  = my + 'px';
 });
 
-function animateFollower() {
-  followerX += (mouseX - followerX) * 0.12;
-  followerY += (mouseY - followerY) * 0.12;
-  follower.style.left = followerX + 'px';
-  follower.style.top = followerY + 'px';
-  requestAnimationFrame(animateFollower);
-}
-animateFollower();
+(function animCur() {
+  fx += (mx - fx) * .1;
+  fy += (my - fy) * .1;
+  cur2.style.left = fx + 'px';
+  cur2.style.top  = fy + 'px';
+  requestAnimationFrame(animCur);
+})();
 
-document.querySelectorAll('a, button, .menu-card, .pillar, .tab-btn, .g-item').forEach(el => {
+document.querySelectorAll('a,button,.prog-card,.gi,.tr-card,.price-card,.tc').forEach(el => {
   el.addEventListener('mouseenter', () => {
-    cursor.style.width = '20px';
-    cursor.style.height = '20px';
-    cursor.style.background = 'rgba(200,150,90,0.8)';
-    follower.style.width = '56px';
-    follower.style.height = '56px';
-    follower.style.borderColor = 'rgba(200,150,90,0.5)';
+    cur.style.width  = '20px';
+    cur.style.height = '20px';
+    cur2.style.width  = '54px';
+    cur2.style.height = '54px';
+    cur2.style.borderColor = 'rgba(249,115,22,.7)';
   });
   el.addEventListener('mouseleave', () => {
-    cursor.style.width = '10px';
-    cursor.style.height = '10px';
-    cursor.style.background = '#C8965A';
-    follower.style.width = '36px';
-    follower.style.height = '36px';
-    follower.style.borderColor = '#C8965A';
+    cur.style.width  = '10px';
+    cur.style.height = '10px';
+    cur2.style.width  = '34px';
+    cur2.style.height = '34px';
+    cur2.style.borderColor = 'rgba(249,115,22,.5)';
   });
 });
 
-// ---- NAVBAR ----
-const navbar = document.getElementById('navbar');
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('navLinks');
+// ── HERO PARTICLE CANVAS ─────────────────────
+const canvas = document.getElementById('heroCanvas');
+const ctx    = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resizeCanvas() {
+  W = canvas.width  = canvas.offsetWidth;
+  H = canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); spawnParticles(); });
+
+function spawnParticles() {
+  particles = [];
+  const count = Math.floor(W / 12);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.5 + .3,
+      vx: (Math.random() - .5) * .4,
+      vy: (Math.random() - .5) * .4,
+      alpha: Math.random() * .5 + .1,
+      color: Math.random() > .5 ? '#F97316' : '#EF4444',
+    });
+  }
+}
+spawnParticles();
+
+function drawLines() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(249,115,22,${.08 * (1 - dist/100)})`;
+        ctx.lineWidth = .5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animCanvas() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+  drawLines();
+  requestAnimationFrame(animCanvas);
+}
+animCanvas();
+
+// ── NAVBAR ────────────────────────────────────
+const nav = document.getElementById('nav');
+const hbg = document.getElementById('hbg');
+const navUl = document.getElementById('navUl');
 
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 60) {
-    navbar.classList.add('scrolled');
+  nav.classList.toggle('stuck', window.scrollY > 60);
+});
+
+hbg.addEventListener('click', () => {
+  navUl.classList.toggle('open');
+  const sp = hbg.querySelectorAll('span');
+  if (navUl.classList.contains('open')) {
+    sp[0].style.transform = 'rotate(45deg) translate(5px,6px)';
+    sp[1].style.opacity   = '0';
+    sp[2].style.transform = 'rotate(-45deg) translate(5px,-6px)';
   } else {
-    navbar.classList.remove('scrolled');
+    sp[0].style.transform = sp[2].style.transform = '';
+    sp[1].style.opacity = '';
   }
 });
+navUl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navUl.classList.remove('open')));
 
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('open');
-  const spans = hamburger.querySelectorAll('span');
-  if (navLinks.classList.contains('open')) {
-    spans[0].style.transform = 'rotate(45deg) translate(5px, 6px)';
-    spans[1].style.opacity = '0';
-    spans[2].style.transform = 'rotate(-45deg) translate(5px, -6px)';
-  } else {
-    spans[0].style.transform = '';
-    spans[1].style.opacity = '';
-    spans[2].style.transform = '';
-  }
-});
+// ── SCROLL REVEAL ────────────────────────────
+function initReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); } });
+  }, { threshold: .12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.sr').forEach(el => obs.observe(el));
+}
 
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('open');
-  });
-});
-
-// ---- SMOOTH SCROLL ----
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
-
-// ---- REVEAL ON SCROLL ----
-function initAnimations() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
+// ── COUNTERS ─────────────────────────────────
+function initCounters() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !e.target.dataset.done) {
+        e.target.dataset.done = 1;
+        animNum(e.target, +e.target.dataset.n);
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
-
-  document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right').forEach(el => {
-    observer.observe(el);
-  });
+  }, { threshold: .5 });
+  document.querySelectorAll('.sn').forEach(el => obs.observe(el));
 }
 
-// ---- COUNTER ANIMATION ----
-function animateCounter(el, target, duration = 2000) {
-  let start = 0;
-  const step = target / (duration / 16);
-  const timer = setInterval(() => {
-    start += step;
-    if (start >= target) {
-      el.textContent = target.toLocaleString();
-      clearInterval(timer);
-    } else {
-      el.textContent = Math.floor(start).toLocaleString();
-    }
-  }, 16);
+function animNum(el, target) {
+  let v = 0;
+  const step = target / 60;
+  const t = setInterval(() => {
+    v += step;
+    if (v >= target) { v = target; clearInterval(t); }
+    el.textContent = Math.floor(v).toLocaleString();
+  }, 25);
 }
 
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !entry.target.dataset.counted) {
-      entry.target.dataset.counted = true;
-      const target = parseInt(entry.target.dataset.count);
-      animateCounter(entry.target, target);
-    }
-  });
-}, { threshold: 0.5 });
-
-document.querySelectorAll('.stat-num').forEach(el => counterObserver.observe(el));
-
-// ---- 3D CARD MOUSE EFFECT ----
-const card3d = document.getElementById('card3d');
-if (card3d) {
-  document.addEventListener('mousemove', (e) => {
-    const rect = card3d.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const rotX = (e.clientY - centerY) / 20;
-    const rotY = (e.clientX - centerX) / 20;
-    card3d.style.transform = `translateY(-20px) rotateX(${-rotX}deg) rotateY(${rotY - 8}deg)`;
-  });
-}
-
-// ---- PARALLAX ----
-const parallaxImg = document.getElementById('parallaxImg');
+// ── PARALLAX ─────────────────────────────────
+const parImg = document.getElementById('parImg');
 window.addEventListener('scroll', () => {
-  if (parallaxImg) {
-    const section = parallaxImg.closest('.experience');
-    if (!section) return;
-    const rect = section.getBoundingClientRect();
-    const speed = 0.4;
-    const offset = rect.top * speed;
-    parallaxImg.style.transform = `translateY(${offset}px)`;
-  }
+  if (!parImg) return;
+  const rect = parImg.closest('.par-wrap').getBoundingClientRect();
+  parImg.style.transform = `translateY(${rect.top * .35}px)`;
 });
 
-// ---- MENU TABS ----
-const tabs = document.querySelectorAll('.tab-btn');
-const menuCards = document.querySelectorAll('.menu-card');
-
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const selectedTab = tab.dataset.tab;
-    menuCards.forEach(card => {
-      if (card.dataset.tab === selectedTab) {
-        card.classList.remove('hidden');
-        card.classList.add('reveal-up');
-        setTimeout(() => card.classList.add('revealed'), 50);
-      } else {
-        card.classList.add('hidden');
-        card.classList.remove('revealed');
-      }
-    });
+// ── 3D TILT ON HERO IMAGE ────────────────────
+const hWrap = document.getElementById('heroImgWrap');
+if (hWrap) {
+  document.addEventListener('mousemove', e => {
+    const rect = hWrap.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top  + rect.height/2;
+    const rx = (e.clientY - cy) / 24;
+    const ry = (e.clientX - cx) / 24;
+    hWrap.style.transform = `perspective(900px) rotateX(${-rx}deg) rotateY(${ry}deg)`;
   });
-});
+  document.addEventListener('mouseleave', () => { hWrap.style.transform = ''; });
+}
 
-// ---- ADD TO CART ANIMATION ----
-document.querySelectorAll('.add-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const original = this.textContent;
-    this.textContent = '✓';
-    this.style.background = '#4CAF50';
-    this.style.color = 'white';
-    setTimeout(() => {
-      this.textContent = original;
-      this.style.background = '';
-      this.style.color = '';
-    }, 1200);
-  });
-});
+// ── PROGRAMS SLIDER ──────────────────────────
+function initPrograms() {
+  const scroll  = document.getElementById('progScroll');
+  const btnL    = document.getElementById('pnLeft');
+  const btnR    = document.getElementById('pnRight');
+  const dotsBox = document.getElementById('pnDots');
+  if (!scroll) return;
 
-// ---- TESTIMONIAL SLIDER ----
-const track = document.getElementById('testTrack');
-const dotsContainer = document.getElementById('testDots');
-const cards = track ? track.querySelectorAll('.testimonial-card') : [];
-let currentTest = 0;
+  const cards   = scroll.querySelectorAll('.prog-card');
+  const cardW   = () => cards[0] ? cards[0].offsetWidth + 24 : 344;
+  let cur       = 0;
 
-if (cards.length > 0) {
   cards.forEach((_, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'test-dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', () => goToSlide(i));
-    dotsContainer.appendChild(dot);
+    const d = document.createElement('div');
+    d.className = 'pnd' + (i===0?' on':'');
+    d.addEventListener('click', () => goTo(i));
+    dotsBox.appendChild(d);
   });
 
-  function goToSlide(index) {
-    cards[currentTest].classList.remove('active');
-    document.querySelectorAll('.test-dot')[currentTest].classList.remove('active');
-    currentTest = index;
-    cards[currentTest].classList.add('active');
-    document.querySelectorAll('.test-dot')[currentTest].classList.add('active');
-
-    const cardWidth = cards[0].offsetWidth + 24;
-    const centerOffset = track.offsetWidth / 2 - cardWidth / 2;
-    track.style.transform = `translateX(${-index * cardWidth + centerOffset}px)`;
-    track.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  function goTo(idx) {
+    cur = Math.max(0, Math.min(idx, cards.length - 1));
+    scroll.scrollTo({ left: cur * cardW(), behavior: 'smooth' });
+    dotsBox.querySelectorAll('.pnd').forEach((d, i) => d.classList.toggle('on', i===cur));
   }
 
-  cards[0].classList.add('active');
-  goToSlide(0);
-
-  setInterval(() => {
-    const next = (currentTest + 1) % cards.length;
-    goToSlide(next);
-  }, 4000);
+  btnL.addEventListener('click', () => goTo(cur - 1));
+  btnR.addEventListener('click', () => goTo(cur + 1));
 }
 
-// ---- CONTACT FORM ----
-const form = document.getElementById('contactForm');
-const note = document.getElementById('formNote');
-if (form) {
-  form.addEventListener('submit', (e) => {
+// ── TESTIMONIALS SLIDER ──────────────────────
+function initTestimonials() {
+  const wrap = document.getElementById('testiWrap');
+  const dotsBox = document.getElementById('testiDots');
+  if (!wrap) return;
+
+  const cards = wrap.querySelectorAll('.tc');
+  let cur = 0;
+
+  cards.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'td' + (i===0?' on':'');
+    d.addEventListener('click', () => goT(i));
+    dotsBox.appendChild(d);
+  });
+
+  function goT(idx) {
+    cards[cur].classList.remove('on');
+    dotsBox.querySelectorAll('.td')[cur].classList.remove('on');
+    cur = idx;
+    cards[cur].classList.add('on');
+    dotsBox.querySelectorAll('.td')[cur].classList.add('on');
+    const cW = cards[0].offsetWidth + 24;
+    const offset = wrap.offsetWidth / 2 - cW / 2;
+    wrap.style.transform = `translateX(${-cur * cW + offset}px)`;
+    wrap.style.transition = 'transform .5s cubic-bezier(.25,.46,.45,.94)';
+  }
+
+  cards[0].classList.add('on');
+  goT(0);
+  const auto = setInterval(() => goT((cur + 1) % cards.length), 4500);
+  wrap.addEventListener('mouseenter', () => clearInterval(auto));
+}
+
+// ── CONTACT FORM ─────────────────────────────
+const gymForm = document.getElementById('gymForm');
+const formOk  = document.getElementById('formOk');
+if (gymForm) {
+  gymForm.addEventListener('submit', e => {
     e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
+    const btn = gymForm.querySelector('button');
     btn.textContent = 'Booking...';
-    btn.style.background = '#888';
+    btn.style.opacity = '.7';
     setTimeout(() => {
-      btn.textContent = '✓ Reservation Confirmed!';
-      btn.style.background = '#4CAF50';
-      note.textContent = "We'll confirm your reservation at the email provided. See you at Brixon!";
+      btn.textContent  = '✓ Booked! We\'ll reach out within 24hrs';
+      btn.style.opacity = '1';
+      btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+      formOk.textContent = 'Your free trial session has been requested. See you at Apex! 💪';
+      gymForm.reset();
       setTimeout(() => {
-        btn.textContent = 'Reserve Now ✦';
+        btn.textContent  = 'Book Free Trial → ⚡';
         btn.style.background = '';
-        note.textContent = '';
-        form.reset();
-      }, 4000);
+        formOk.textContent = '';
+      }, 5000);
     }, 1800);
   });
 }
 
-// ---- MAGNETIC BUTTONS ----
-document.querySelectorAll('.magnetic').forEach(el => {
-  el.addEventListener('mousemove', (e) => {
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    el.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px)`;
-  });
-  el.addEventListener('mouseleave', () => {
-    el.style.transform = '';
+// ── SMOOTH SCROLL ────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
 });
 
-// ---- MARQUEE PAUSE ON HOVER ----
-const marqueeTrack = document.querySelector('.marquee-track');
-if (marqueeTrack) {
-  marqueeTrack.addEventListener('mouseenter', () => {
-    marqueeTrack.style.animationPlayState = 'paused';
+// ── MAGNETIC BUTTONS ─────────────────────────
+document.querySelectorAll('.btn-fire,.btn-ghost-w').forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width/2;
+    const y = e.clientY - r.top  - r.height/2;
+    btn.style.transform = `translate(${x*.25}px,${y*.25}px)`;
   });
-  marqueeTrack.addEventListener('mouseleave', () => {
-    marqueeTrack.style.animationPlayState = 'running';
-  });
+  btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+});
+
+// ── MARQUEE PAUSE ────────────────────────────
+const mq = document.querySelector('.mq-track');
+if (mq) {
+  mq.addEventListener('mouseenter', () => mq.style.animationPlayState = 'paused');
+  mq.addEventListener('mouseleave', () => mq.style.animationPlayState = 'running');
 }
 
-// ---- GALLERY CURSOR TEXT ----
-document.querySelectorAll('.g-item').forEach(item => {
-  item.addEventListener('mouseenter', () => {
-    cursor.textContent = '↗';
-    cursor.style.width = '40px';
-    cursor.style.height = '40px';
-    cursor.style.fontSize = '14px';
-    cursor.style.display = 'flex';
-    cursor.style.alignItems = 'center';
-    cursor.style.justifyContent = 'center';
-  });
-  item.addEventListener('mouseleave', () => {
-    cursor.textContent = '';
-    cursor.style.width = '10px';
-    cursor.style.height = '10px';
-  });
-});
-
-// ---- PAGE LOADED ----
-console.log('%cBrixon Cafe ✦', 'color:#C8965A; font-size:18px; font-weight:bold;');
-console.log('%cDesigned & Developed by Saher | nexaaweb.github.io', 'color:#888; font-size:12px;');
+console.log('%cApex Fitness ⚡', 'color:#F97316;font-size:20px;font-weight:bold;');
+console.log('%cDesigned & Developed by Saher | nexaaweb.github.io', 'color:#888;font-size:12px;');
